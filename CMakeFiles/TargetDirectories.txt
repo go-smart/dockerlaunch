@@ -1,2 +1,0 @@
-/home/scratch/Work/Go-Smart/build/dockerlaunch/CMakeFiles/dockerlaunch_setup.dir
-/home/scratch/Work/Go-Smart/build/dockerlaunch/CMakeFiles/dockerlaunch.dir

@@ -4,7 +4,7 @@ import subprocess
 
 
 def privileged_setup():
-    if subprocess.call(['/home/scratch/Work/Go-Smart/tree/dockerlaunch/create-unix.sh']):
+    if subprocess.call(['${CMAKE_CURRENT_SOURCE_DIR}/create-unix.sh']):
         raise RuntimeError("create-unix unsuccessful")
 
 
@@ -29,9 +29,9 @@ setup(
     version='0.1',
     packages=['dockerlaunch'],
     package_data={'dockerlaunch': [
-        '/home/scratch/Work/Go-Smart/tree/dockerlaunch/dockerlaunch/data/indocker.py'
+        '${CMAKE_CURRENT_SOURCE_DIR}/dockerlaunch/data/indocker.py'
     ]},
-    package_dir={'dockerlaunch': '/home/scratch/Work/Go-Smart/tree/dockerlaunch/dockerlaunch'},
+    package_dir={'dockerlaunch': '${CMAKE_CURRENT_SOURCE_DIR}/dockerlaunch'},
 
     description='Launcher for Docker containers to provide some measure of sandbox protection',
     author='Phil Weir - NUMA Engineering Services Ltd.',
@@ -39,7 +39,7 @@ setup(
     url='http://gosmart-project.eu/',
 
     scripts=[
-        '/home/scratch/Work/Go-Smart/tree/dockerlaunch/scripts/dockerlaunchd'
+        '${CMAKE_CURRENT_SOURCE_DIR}/scripts/dockerlaunchd'
     ],
     cmdclass={'install': WrappedInstall, 'dockerlaunch_setup': DockerLaunchSetup}
 )
