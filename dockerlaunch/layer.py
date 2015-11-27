@@ -133,6 +133,8 @@ class DockerLayer:
 
         os.chmod(input_directory, 0o777)
 
+        logger.info("Changed permissions: %s" % tmpdir)
+
         # Hack to work around Docker API < 1.15
         command = ['/init.sh']
         volumes = ['/shared', '/docker-launch-inner.py']
@@ -147,6 +149,8 @@ class DockerLayer:
             }
         }
 
+        logger.info("Set up docker API")
+
         # TODO: should there be additional security checks before mounting this sock?
         # FIXME: at least that it is a socket, not a symlink and the unprivileged requester has write access
         if update_socket:
@@ -156,6 +160,8 @@ class DockerLayer:
                 'mode': 'rw'
             }
             update_socket_available = True
+
+        logger.info("About to start...")
 
         if docker.utils.compare_version('1.15', c._version) < 0:
             container = c.create_container(
@@ -180,6 +186,8 @@ class DockerLayer:
             logger.info("Created container %s with command %s" % (container_id, " ".join(command)))
 
             c.start(container_id)
+
+        logger.info("Started")
 
         return container_id, temporary_directory, \
             output_suffix, input_suffix, update_socket_available
