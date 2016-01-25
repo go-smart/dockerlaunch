@@ -92,6 +92,7 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
             if arguments is not None and 'image' in arguments and 'update socket':
                 success, message = self._docker_layer.try_launch(
                     arguments['image'],
+                    arguments['volume location'],
                     arguments['update socket'] if 'update socket' in arguments else None
                 )
             else:

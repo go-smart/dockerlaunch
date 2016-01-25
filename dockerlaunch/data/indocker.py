@@ -40,12 +40,9 @@ class DockerInnerHandler(AIOEventHandler, PatternMatchingEventHandler):
             )
 
     @asyncio.coroutine
-    def on_created(self, event):
-        if event.is_directory:
-            logging.error("%s should be a file, not dir" % event.src_path)
-            return
-
-        yield from self.handle_exists(event.src_path, event.is_directory)
+    def on_moved(self, event):
+        if event.dest_path.endswith('/input'):
+            yield from self.handle_exists(os.path.join(event.dest_path, 'start.tar.gz'), event.is_directory)
 
     @asyncio.coroutine
     def handle_exists(self, location, is_directory):
@@ -123,7 +120,7 @@ def run(loop, magic_script):
 
     event_handler = DockerInnerHandler(partial(exit, loop, observer), magic_script, loop=loop)
 
-    observer.schedule(event_handler, '/shared/input')
+    observer.schedule(event_handler, '/shared')
     observer.start()
 
     logging.info('Observation thread started')
@@ -151,5 +148,9 @@ if __name__ == "__main__":
         loop.run_forever()
     finally:
         loop.close()
+
+    logging.info('Moving output to final location')
+
+    os.rename(os.path.join('/shared', 'output'), os.path.join('/shared', 'output.final'))
 
     logging.info('Loop closed and exiting...')

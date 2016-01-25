@@ -3,6 +3,7 @@ import tempfile
 import requests
 import os
 import traceback
+import re
 
 
 class DockerLayer:
@@ -47,7 +48,7 @@ class DockerLayer:
 
         return None
 
-    def try_launch(self, image, update_socket=None):
+    def try_launch(self, image, data_location, update_socket=None):
         if image not in self._allowed_images:
             return False, "This image is not a whitelisted image for docker-launch"
 
@@ -62,6 +63,7 @@ class DockerLayer:
                 self._launch(
                     c,
                     image,
+                    data_location,
                     self._script_filename,
                     self._logger,
                     update_socket
@@ -107,7 +109,7 @@ class DockerLayer:
         return self.wait(self._shutdown_timeout, destroy=True)
 
     @staticmethod
-    def _launch(c, docker_image, script_filename, logger, update_socket=None):
+    def _launch(c, docker_image, data_location, script_filename, logger, update_socket=None):
         # Cleaned when object that holds it (instance of DL class) is destroyed
         try:
             temporary_directory = tempfile.TemporaryDirectory()
@@ -136,17 +138,8 @@ class DockerLayer:
         logger.info("Changed permissions: %s" % tmpdir)
 
         # Hack to work around Docker API < 1.15
-        command = ['/init.sh']
         volumes = ['/shared', '/docker-launch-inner.py']
         binds = {
-            tmpdir: {
-                'bind': '/shared',
-                'mode': 'rw'
-            },
-            script_filename: {
-                'bind': '/docker-launch-inner.py',
-                'mode': 'r'
-            }
         }
 
         logger.info("Set up docker API")
@@ -154,11 +147,11 @@ class DockerLayer:
         # TODO: should there be additional security checks before mounting this sock?
         # FIXME: at least that it is a socket, not a symlink and the unprivileged requester has write access
         if update_socket:
-            volumes.append(update_socket)
-            binds[update_socket] = {
-                'bind': '/update.sock',
-                'mode': 'rw'
-            }
+            #volumes.append(update_socket)
+            #binds[update_socket] = {
+            #    'bind': '/update.sock',
+            #    'mode': 'rw'
+            #}
             update_socket_available = True
 
         logger.info("About to start...")
@@ -166,7 +159,6 @@ class DockerLayer:
         if docker.utils.compare_version('1.15', c._version) < 0:
             container = c.create_container(
                 docker_image,
-                command=[' '.join(command)],
                 volumes=volumes
             )
             container_id = container['Id']
@@ -177,17 +169,24 @@ class DockerLayer:
         else:
             container = c.create_container(
                 docker_image,
-                command=command,
                 volumes=volumes,
                 host_config=docker.utils.create_host_config(binds=binds)
             )
             container_id = container['Id']
 
-            logger.info("Created container %s with command %s" % (container_id, " ".join(command)))
+            logger.info("Created container %s" % container_id)
 
             c.start(container_id)
 
         logger.info("Started")
+
+        data_location = re.sub(r'[^a-zA-Z0-9-_]', '_', data_location)
+        bridge = c.create_container(
+            'numaengineering/gssa-bridge',
+            command=[data_location]
+        )
+        c.start(bridge, volumes_from=['gssaserverside_data_1', container_id])
+        logger.info("Bridge up")
 
         return container_id, temporary_directory, \
             output_suffix, input_suffix, update_socket_available
