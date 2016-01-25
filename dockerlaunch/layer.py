@@ -143,6 +143,7 @@ class DockerLayer:
         }
 
         logger.info("Set up docker API")
+        environment = {}
 
         # TODO: should there be additional security checks before mounting this sock?
         # FIXME: at least that it is a socket, not a symlink and the unprivileged requester has write access
@@ -153,13 +154,15 @@ class DockerLayer:
             #    'mode': 'rw'
             #}
             update_socket_available = True
+            environment['GSSA_STATUS_SOCKET'] = '/shared/input/update.sock'
 
         logger.info("About to start...")
 
         if docker.utils.compare_version('1.15', c._version) < 0:
             container = c.create_container(
                 docker_image,
-                volumes=volumes
+                volumes=volumes,
+                environment=environment
             )
             container_id = container['Id']
 
@@ -170,7 +173,8 @@ class DockerLayer:
             container = c.create_container(
                 docker_image,
                 volumes=volumes,
-                host_config=docker.utils.create_host_config(binds=binds)
+                host_config=docker.utils.create_host_config(binds=binds),
+                environment=environment
             )
             container_id = container['Id']
 
@@ -183,7 +187,8 @@ class DockerLayer:
         data_location = re.sub(r'[^a-zA-Z0-9-_]', '_', data_location)
         bridge = c.create_container(
             'numaengineering/gssa-bridge',
-            command=[data_location]
+            command=[data_location],
+            environment=environment
         )
         c.start(bridge, volumes_from=['gssaserverside_data_1', container_id])
         logger.info("Bridge up")
