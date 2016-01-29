@@ -27,6 +27,7 @@ class DockerLayer:
                                             version='auto')
         self._shutdown_timeout = shutdown_timeout
         self._script_filename = script_filename
+        self._bridges = {}
 
         self._logger.info("New Docker layer created")
 
@@ -83,13 +84,19 @@ class DockerLayer:
 
     def wait(self, timeout, destroy=False):
         if self._container_id:
+            if self._container_id in self._bridges:
+                bridge_id = self._bridges[self._container_id]
+            else:
+                bridge_id = None
+
             try:
                 container_destroyed = self._wait(
                     self._docker_client,
                     self._container_id,
                     timeout,
                     self._logger,
-                    destroy=destroy
+                    destroy=destroy,
+                    bridge_id=bridge_id
                 )
             except Exception as e:
                 self._logger.error(
@@ -154,7 +161,8 @@ class DockerLayer:
             #    'mode': 'rw'
             #}
             update_socket_available = True
-            environment['GSSA_STATUS_SOCKET'] = '/shared/input/update.sock'
+            environment['GSSA_STATUS_SOCKET'] = '/shared/update.sock'
+            logger.info("Set GSSA_STATUS_SOCKET to %s" % environment['GSSA_STATUS_SOCKET'])
 
         logger.info("About to start...")
 
@@ -186,19 +194,21 @@ class DockerLayer:
 
         data_location = re.sub(r'[^a-zA-Z0-9-_]', '_', data_location)
         bridge = c.create_container(
-            'numaengineering/gssa-bridge',
+            'gosmart/glossia-bridge',
             command=[data_location],
             environment=environment
         )
-        c.start(bridge, volumes_from=['gssaserverside_data_1', container_id])
+        c.start(bridge, volumes_from=['glossiaserverside_data_1', container_id])
         logger.info("Bridge up")
 
         return container_id, temporary_directory, \
             output_suffix, input_suffix, update_socket_available
 
     @staticmethod
-    def _wait(c, container_id, timeout, logger, destroy=False):
+    def _wait(c, container_id, timeout, logger, destroy=False, bridge_id=None):
         logger.info("Waiting for %s" % container_id)
+
+        destroyed = False
 
         try:
             c.wait(container_id, timeout)
@@ -211,6 +221,10 @@ class DockerLayer:
             c.remove_container(container_id, force=True)
             logger.info("Removed %s" % container_id)
 
-            return True
+            destroyed = True
 
-        return False
+        if bridge_id:
+            c.stop(bridge_id)
+            logger.info("Removed bridge %s" % bridge_id)
+
+        return destroyed

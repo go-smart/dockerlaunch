@@ -8,7 +8,11 @@ from .utils import _find_urandom_fd
 
 
 def run(indocker=None):
-    docker_settings = {'allowed_images': ['gosmart/fenics-stable-ppa', 'gosmart/gfoam']}
+    docker_settings = {'allowed_images': [
+        'gosmart/fenics-stable-ppa',
+        'gosmart/gfoam',
+        'numaengineering/gssf'
+    ]}
 
     log_location = '/var/log/docker-launch'
     run_location = '/var/run/docker-launch'
