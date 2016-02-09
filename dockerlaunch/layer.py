@@ -178,10 +178,11 @@ class DockerLayer:
 
             c.start(container_id, binds=binds)
         else:
+            config = c.create_host_config(binds=binds)
             container = c.create_container(
                 docker_image,
                 volumes=volumes,
-                host_config=docker.utils.create_host_config(binds=binds),
+                host_config=config,
                 environment=environment
             )
             container_id = container['Id']
