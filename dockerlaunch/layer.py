@@ -176,9 +176,12 @@ class DockerLayer:
 
             logger.info("Created container %s (old API)" % container_id)
 
-            c.start(container_id, binds=binds)
+            c.start(container_id, binds=binds, network_mode='none')
         else:
-            config = c.create_host_config(binds=binds)
+            config = c.create_host_config(
+                binds=binds,
+                network_mode='none'
+            )
             container = c.create_container(
                 docker_image,
                 volumes=volumes,
