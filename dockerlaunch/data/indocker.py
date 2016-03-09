@@ -126,7 +126,7 @@ def run(loop, magic_script):
     logging.info('Observation thread started')
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Manage a single script run for docker-launch')
+    parser = argparse.ArgumentParser(description='Manage a single script run for dockerlaunch')
     args = parser.parse_args()
     magic_script = "start.tar.gz"
 

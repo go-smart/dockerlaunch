@@ -14,13 +14,13 @@ def run(indocker=None):
         'gosmart/glossia-goosefoot'
     ]}
 
-    log_location = '/var/log/docker-launch'
-    run_location = '/var/run/docker-launch'
-    lib_location = '/var/lib/docker-launch'
+    log_location = '/var/log/dockerlaunch'
+    run_location = '/var/run/dockerlaunch'
+    lib_location = '/var/lib/dockerlaunch'
 
-    socket_name = 'docker-launch.sock'
-    log_name = 'docker-launch.log'
-    pid_name = 'docker-launch.pid'
+    socket_name = 'dockerlaunch.sock'
+    log_name = 'dockerlaunch.log'
+    pid_name = 'dockerlaunch.pid'
     script_name = 'docker-launch-inner.py'
 
     if not os.path.exists(lib_location):

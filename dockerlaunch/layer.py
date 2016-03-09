@@ -51,7 +51,7 @@ class DockerLayer:
 
     def try_launch(self, image, data_location, update_socket=None):
         if image not in self._allowed_images:
-            return False, "This image is not a whitelisted image for docker-launch"
+            return False, "This image is not a whitelisted image for dockerlaunch"
 
         c = self._docker_client
         container_count = len(c.containers())
