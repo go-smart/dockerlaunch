@@ -60,7 +60,7 @@ class DockerLayer:
         if len(c.containers()) > self._max_containers:
             return False, "Too many containers"
         else:
-            container_id, temporary_directory, output_directory, input_directory, socket_available = \
+            container_id, temporary_directory, output_directory, input_directory, socket_available, bridge_id = \
                 self._launch(
                     c,
                     image,
@@ -74,6 +74,7 @@ class DockerLayer:
             self._temporary_directory = temporary_directory
             self._output_directory = output_directory
             self._input_directory = input_directory
+            self._bridges[self._container_id] = bridge_id
 
             return True, {
                 'volume location': temporary_directory.name,
@@ -206,7 +207,7 @@ class DockerLayer:
         logger.info("Bridge up")
 
         return container_id, temporary_directory, \
-            output_suffix, input_suffix, update_socket_available
+            output_suffix, input_suffix, update_socket_available, bridge['Id']
 
     @staticmethod
     def _wait(c, container_id, timeout, logger, destroy=False, bridge_id=None):

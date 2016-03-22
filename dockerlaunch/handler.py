@@ -81,7 +81,10 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
                         })
 
                         print(response)
-                        self.request.sendall(bytes("%s\n" % response, 'UTF-8'))
+                        try:
+                            self.request.sendall(bytes("%s\n" % response, 'UTF-8'))
+                        except BrokenPipeError:
+                            self._logger.debug("Lost pipe")
 
                     message = b''
 
