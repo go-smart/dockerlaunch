@@ -8,11 +8,14 @@ from .utils import _find_urandom_fd
 
 
 def run(indocker=None):
-    docker_settings = {'allowed_images': [
-        'gosmart/glossia-fenics',
-        'gosmart/gfoam',
-        'gosmart/glossia-goosefoot'
-    ]}
+    docker_settings = {
+        'allowed_images': [
+            'gosmart/glossia-fenics',
+            'gosmart/gfoam',
+            'gosmart/glossia-goosefoot'
+        ],
+        'max_containers': 30
+    }
 
     log_location = '/var/log/dockerlaunch'
     run_location = '/var/run/dockerlaunch'
@@ -44,6 +47,8 @@ def run(indocker=None):
     docker_launch_gid = docker_launch_pwd.pw_gid
 
     os.setgid(docker_launch_gid)
+    # This pulls in the docker group (of which dockerlaunch should be a member)
+    os.initgroups('dockerlaunch', docker_launch_gid)
 
     # http://www.gavinj.net/2012/06/building-python-daemon-process.html
     for location in (run_location, log_location):

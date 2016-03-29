@@ -9,6 +9,7 @@ import re
 class DockerLayer:
     _docker_socket = 'unix://var/run/docker.sock'
     _container_id = None
+    _container_info = None
 
     def __init__(self, allowed_images, logger, script_filename,
                  max_containers=10,
@@ -37,6 +38,18 @@ class DockerLayer:
     def get_container_id(self):
         return self._container_id
 
+    def get_container_info(self):
+        if not self._container_info and self._container_id:
+            self._container_info = self._docker_client.inspect_container(self._container_id)
+        return self._container_info
+
+    def get_image_id(self):
+        container_info = self.get_container_info()
+        if container_info and 'Image' in container_info:
+            return container_info['Image']
+
+        return None
+
     def get_container_count(self):
         if self._docker_client:
             return len(self._docker_client.containers())
@@ -58,7 +71,7 @@ class DockerLayer:
         self._logger.info("Currently %d containers" % container_count)
 
         if len(c.containers()) > self._max_containers:
-            return False, "Too many containers"
+            return False, ("Too many containers (max: %d)" % self._max_containers)
         else:
             container_id, temporary_directory, output_directory, input_directory, socket_available, bridge_id = \
                 self._launch(

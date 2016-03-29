@@ -92,7 +92,7 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
         self._logger.debug(message)
 
         if message == "START":
-            if arguments is not None and 'image' in arguments and 'update socket':
+            if arguments is not None and 'image' in arguments and 'volume location' in arguments:
                 success, message = self._docker_layer.try_launch(
                     arguments['image'],
                     arguments['volume location'],
@@ -131,10 +131,11 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
                 success, message = True, container_count
         elif message == "CONTAINER":
             container_id = self._docker_layer.get_container_id()
+            image_id = self._docker_layer.get_image_id()
             if container_id is None:
                 success, message = False, "No container associated"
             else:
-                success, message = True, container_id
+                success, message = True, {'container_id': container_id, 'image_id': image_id}
         elif message == "DESTROY":
             if not self._started:
                 success, message = False, "Must successfully start first"
