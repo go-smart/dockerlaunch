@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Container management commands &mdash; dockerlaunch 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="dockerlaunch 0.2 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to dockerlaunch’s documentation!" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="container-management-commands">
+<h1>Container management commands<a class="headerlink" href="#container-management-commands" title="Permalink to this headline">¶</a></h1>
+<p>The format shown is &#8220;COMMAND (reqarg) [optarg]&#8221; where &#8220;reqarg&#8221; is required
+and &#8220;optarg&#8221; is optional. This would be represented
+in a JSON instruction, via the Unix socket, as:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;command&quot;</span><span class="o">:</span> <span class="nx">COMMAND</span><span class="p">,</span>
+        <span class="s2">&quot;arguments&quot;</span><span class="o">:</span> <span class="p">{</span>
+                <span class="s2">&quot;reqarg&quot;</span><span class="o">:</span> <span class="nx">REQARG_VAL</span><span class="p">,</span>
+                <span class="s2">&quot;optarg&quot;</span><span class="o">:</span> <span class="nx">OPTARG_VAL</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Or, optionally, if no arguments are supplied for a command:</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;command&quot;</span><span class="p">,</span> <span class="nx">COMMAND</span><span class="p">,</span>
+        <span class="s2">&quot;arguments&quot;</span><span class="o">:</span> <span class="kc">null</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="section" id="commands">
+<h2>Commands<a class="headerlink" href="#commands" title="Permalink to this headline">¶</a></h2>
+<ul>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">CONTAINER</span></code></dt>
+<dd><ul class="first last">
+<li><p class="first">Give back the container ID of the container managed by this connection, and the image
+ID. Note that the latter is useful as it is the UUID, not the tag, and so provides a
+canonical reference for reproducibility.</p>
+<div class="highlight-javascript"><div class="highlight"><pre><span></span><span class="p">{</span>
+        <span class="s2">&quot;container_id&quot;</span><span class="o">:</span> <span class="nx">CONTID</span><span class="p">,</span>
+        <span class="s2">&quot;image_id&quot;</span><span class="o">:</span> <span class="nx">IMAGID</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">DESTROY</span></code></dt>
+<dd><ul class="first last simple">
+<li>Kill the container associated with the current connection.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">LOGS</span></code></dt>
+<dd><ul class="first last simple">
+<li>Return logs for the container controlled by the current connection.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">START</span> <span class="pre">(image)</span> <span class="pre">(volume</span> <span class="pre">location)</span> <span class="pre">[update</span> <span class="pre">socket]</span></code></dt>
+<dd><ul class="first last">
+<li><p class="first">Start a container based on the provided image, with the volume mounted to <code class="docutils literal"><span class="pre">/simdata</span></code>
+on the bridge and an optional update socket, also mounted on the bridge, for feeding
+status reports back directly. Image <em>must</em> be a known image tag. At present these
+settings are coded into dockerlaunch, but will soon be migrated to a config file:</p>
+<blockquote>
+<div><ul class="simple">
+<li>gosmart/glossia-fenics</li>
+<li>gosmart/gfoam</li>
+<li>gosmart/glossia-goosefoot</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">USAGE</span></code></dt>
+<dd><ul class="first last simple">
+<li>Provide number of containers running on this system.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><code class="docutils literal"><span class="pre">WAIT</span> <span class="pre">[timeout]</span></code></dt>
+<dd><ul class="first last simple">
+<li>Do not return until the container has exited. If a timeout is supplied, kill the
+container if it has not returned within the interval.</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Container management commands</a><ul>
+<li><a class="reference internal" href="#commands">Commands</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to dockerlaunch&#8217;s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/commands.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Phil Weir.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/commands.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

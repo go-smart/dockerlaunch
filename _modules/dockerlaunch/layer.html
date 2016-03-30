@@ -1,0 +1,335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>dockerlaunch.layer &mdash; dockerlaunch 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="dockerlaunch 0.2 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for dockerlaunch.layer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">docker</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+
+<div class="viewcode-block" id="DockerLayer"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer">[docs]</a><span class="k">class</span> <span class="nc">DockerLayer</span><span class="p">:</span>
+    <span class="n">_docker_socket</span> <span class="o">=</span> <span class="s1">&#39;unix://var/run/docker.sock&#39;</span>
+    <span class="n">_container_id</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">_container_info</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allowed_images</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">script_filename</span><span class="p">,</span>
+                 <span class="n">max_containers</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                 <span class="n">docker_socket</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shutdown_timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logger</span>
+        <span class="k">if</span> <span class="n">docker_socket</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_docker_socket</span> <span class="o">=</span> <span class="n">docker_socket</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allowed_images</span> <span class="o">=</span> <span class="n">allowed_images</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_max_containers</span> <span class="o">=</span> <span class="n">max_containers</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Trying to connect to Docker as </span><span class="si">%d</span><span class="s2">:</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+                          <span class="n">os</span><span class="o">.</span><span class="n">getuid</span><span class="p">(),</span> <span class="n">os</span><span class="o">.</span><span class="n">getgid</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_docker_socket</span><span class="p">,</span>
+                                            <span class="n">version</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_shutdown_timeout</span> <span class="o">=</span> <span class="n">shutdown_timeout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_script_filename</span> <span class="o">=</span> <span class="n">script_filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bridges</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New Docker layer created&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DockerLayer.get_container_id"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.get_container_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_container_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span></div>
+
+<div class="viewcode-block" id="DockerLayer.get_container_info"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.get_container_info">[docs]</a>    <span class="k">def</span> <span class="nf">get_container_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_container_info</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_container_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span><span class="o">.</span><span class="n">inspect_container</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_container_info</span></div>
+
+<div class="viewcode-block" id="DockerLayer.get_image_id"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.get_image_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_image_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">container_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_container_info</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">container_info</span> <span class="ow">and</span> <span class="s1">&#39;Image&#39;</span> <span class="ow">in</span> <span class="n">container_info</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">container_info</span><span class="p">[</span><span class="s1">&#39;Image&#39;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="DockerLayer.get_container_count"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.get_container_count">[docs]</a>    <span class="k">def</span> <span class="nf">get_container_count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span><span class="o">.</span><span class="n">containers</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="DockerLayer.get_container_logs"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.get_container_logs">[docs]</a>    <span class="k">def</span> <span class="nf">get_container_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span><span class="o">.</span><span class="n">logs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">None</span></div>
+
+<div class="viewcode-block" id="DockerLayer.try_launch"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.try_launch">[docs]</a>    <span class="k">def</span> <span class="nf">try_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">data_location</span><span class="p">,</span> <span class="n">update_socket</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">image</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allowed_images</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;This image is not a whitelisted image for dockerlaunch&quot;</span>
+
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span>
+        <span class="n">container_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">containers</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Currently </span><span class="si">%d</span><span class="s2"> containers&quot;</span> <span class="o">%</span> <span class="n">container_count</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">containers</span><span class="p">())</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_containers</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;Too many containers (max: </span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_containers</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">container_id</span><span class="p">,</span> <span class="n">temporary_directory</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">input_directory</span><span class="p">,</span> <span class="n">socket_available</span><span class="p">,</span> <span class="n">bridge_id</span> <span class="o">=</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_launch</span><span class="p">(</span>
+                    <span class="n">c</span><span class="p">,</span>
+                    <span class="n">image</span><span class="p">,</span>
+                    <span class="n">data_location</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_script_filename</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span>
+                    <span class="n">update_socket</span>
+                <span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span> <span class="o">=</span> <span class="n">container_id</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_temporary_directory</span> <span class="o">=</span> <span class="n">temporary_directory</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_output_directory</span> <span class="o">=</span> <span class="n">output_directory</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_input_directory</span> <span class="o">=</span> <span class="n">input_directory</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_bridges</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">bridge_id</span>
+
+            <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="p">{</span>
+                <span class="s1">&#39;volume location&#39;</span><span class="p">:</span> <span class="n">temporary_directory</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s1">&#39;output subdirectory&#39;</span><span class="p">:</span> <span class="n">output_directory</span><span class="p">,</span>
+                <span class="s1">&#39;input subdirectory&#39;</span><span class="p">:</span> <span class="n">input_directory</span><span class="p">,</span>
+                <span class="s1">&#39;update socket available&#39;</span><span class="p">:</span> <span class="n">socket_available</span>
+            <span class="p">}</span></div>
+
+<div class="viewcode-block" id="DockerLayer.wait"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.wait">[docs]</a>    <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">destroy</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bridges</span><span class="p">:</span>
+                <span class="n">bridge_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bridges</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">bridge_id</span> <span class="o">=</span> <span class="bp">None</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">container_destroyed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wait</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">,</span>
+                    <span class="n">timeout</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span>
+                    <span class="n">destroy</span><span class="o">=</span><span class="n">destroy</span><span class="p">,</span>
+                    <span class="n">bridge_id</span><span class="o">=</span><span class="n">bridge_id</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;Did not complete while waiting (timeout </span><span class="si">%d</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                    <span class="p">(</span><span class="n">timeout</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;Could not wait: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">container_destroyed</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span> <span class="o">=</span> <span class="bp">None</span>
+
+            <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s2">&quot;Exited&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;No container currently associated&quot;</span></div>
+
+<div class="viewcode-block" id="DockerLayer.destroy"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.destroy">[docs]</a>    <span class="k">def</span> <span class="nf">destroy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shutdown_timeout</span><span class="p">,</span> <span class="n">destroy</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_launch</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">docker_image</span><span class="p">,</span> <span class="n">data_location</span><span class="p">,</span> <span class="n">script_filename</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">update_socket</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c1"># Cleaned when object that holds it (instance of DL class) is destroyed</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">temporary_directory</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="k">raise</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">temporary_directory</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="mi">0</span><span class="n">o755</span><span class="p">)</span>
+
+        <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">temporary_directory</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Created temporary directory: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpdir</span><span class="p">)</span>
+
+        <span class="n">output_suffix</span> <span class="o">=</span> <span class="s1">&#39;output&#39;</span>
+        <span class="n">output_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">output_suffix</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_directory</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">output_directory</span><span class="p">,</span> <span class="mi">0</span><span class="n">o777</span><span class="p">)</span>
+
+        <span class="n">input_suffix</span> <span class="o">=</span> <span class="s1">&#39;input&#39;</span>
+        <span class="n">input_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">input_suffix</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">input_directory</span><span class="p">)</span>
+
+        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;FIXME: proper group permissions for input/output directories&quot;</span><span class="p">)</span>
+
+        <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">input_directory</span><span class="p">,</span> <span class="mi">0</span><span class="n">o777</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Changed permissions: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpdir</span><span class="p">)</span>
+
+        <span class="c1"># Hack to work around Docker API &lt; 1.15</span>
+        <span class="n">volumes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;/shared&#39;</span><span class="p">,</span> <span class="s1">&#39;/docker-launch-inner.py&#39;</span><span class="p">]</span>
+        <span class="n">binds</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="p">}</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Set up docker API&quot;</span><span class="p">)</span>
+        <span class="n">environment</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># TODO: should there be additional security checks before mounting this sock?</span>
+        <span class="c1"># FIXME: at least that it is a socket, not a symlink and the unprivileged requester has write access</span>
+        <span class="k">if</span> <span class="n">update_socket</span><span class="p">:</span>
+            <span class="c1">#volumes.append(update_socket)</span>
+            <span class="c1">#binds[update_socket] = {</span>
+            <span class="c1">#    &#39;bind&#39;: &#39;/update.sock&#39;,</span>
+            <span class="c1">#    &#39;mode&#39;: &#39;rw&#39;</span>
+            <span class="c1">#}</span>
+            <span class="n">update_socket_available</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">environment</span><span class="p">[</span><span class="s1">&#39;GSSA_STATUS_SOCKET&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;/shared/update.sock&#39;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Set GSSA_STATUS_SOCKET to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">environment</span><span class="p">[</span><span class="s1">&#39;GSSA_STATUS_SOCKET&#39;</span><span class="p">])</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;About to start...&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">docker</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">compare_version</span><span class="p">(</span><span class="s1">&#39;1.15&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">_version</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">container</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span>
+                <span class="n">docker_image</span><span class="p">,</span>
+                <span class="n">volumes</span><span class="o">=</span><span class="n">volumes</span><span class="p">,</span>
+                <span class="n">environment</span><span class="o">=</span><span class="n">environment</span>
+            <span class="p">)</span>
+            <span class="n">container_id</span> <span class="o">=</span> <span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">]</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Created container </span><span class="si">%s</span><span class="s2"> (old API)&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
+
+            <span class="n">c</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">container_id</span><span class="p">,</span> <span class="n">binds</span><span class="o">=</span><span class="n">binds</span><span class="p">,</span> <span class="n">network_mode</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">config</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">create_host_config</span><span class="p">(</span>
+                <span class="n">binds</span><span class="o">=</span><span class="n">binds</span><span class="p">,</span>
+                <span class="n">network_mode</span><span class="o">=</span><span class="s1">&#39;none&#39;</span>
+            <span class="p">)</span>
+            <span class="n">container</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span>
+                <span class="n">docker_image</span><span class="p">,</span>
+                <span class="n">volumes</span><span class="o">=</span><span class="n">volumes</span><span class="p">,</span>
+                <span class="n">host_config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+                <span class="n">environment</span><span class="o">=</span><span class="n">environment</span>
+            <span class="p">)</span>
+            <span class="n">container_id</span> <span class="o">=</span> <span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">]</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Created container </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
+
+            <span class="n">c</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">container_id</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Started&quot;</span><span class="p">)</span>
+
+        <span class="n">data_location</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">r&#39;[^a-zA-Z0-9-_]&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">data_location</span><span class="p">)</span>
+        <span class="n">bridge</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span>
+            <span class="s1">&#39;gosmart/glossia-bridge&#39;</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="n">data_location</span><span class="p">],</span>
+            <span class="n">environment</span><span class="o">=</span><span class="n">environment</span>
+        <span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">bridge</span><span class="p">,</span> <span class="n">volumes_from</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;glossiaserverside_data_1&#39;</span><span class="p">,</span> <span class="n">container_id</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Bridge up&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">container_id</span><span class="p">,</span> <span class="n">temporary_directory</span><span class="p">,</span> \
+            <span class="n">output_suffix</span><span class="p">,</span> <span class="n">input_suffix</span><span class="p">,</span> <span class="n">update_socket_available</span><span class="p">,</span> <span class="n">bridge</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_wait</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">container_id</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">destroy</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">bridge_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
+
+        <span class="n">destroyed</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">container_id</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;...timed out&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Completed </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">destroy</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">remove_container</span><span class="p">(</span><span class="n">container_id</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removed </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
+
+            <span class="n">destroyed</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="n">bridge_id</span><span class="p">:</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="n">bridge_id</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removed bridge </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">bridge_id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">destroyed</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Phil Weir.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
