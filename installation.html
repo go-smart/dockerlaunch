@@ -47,6 +47,8 @@
 <ul>
 <li><p class="first">Docker</p>
 </li>
+<li><p class="first">CMake</p>
+</li>
 <li><dl class="first docutils">
 <dt>Python 3:</dt>
 <dd><ul class="first last simple">
@@ -59,7 +61,7 @@
 </li>
 </ul>
 <p>These may be installed using (Ubuntu):</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get install docker.io
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get install docker.io cmake
 sudo pip3 install lockfile <span class="se">\</span>
   git+git://github.com/numa-engineering/python-daemon.git@master <span class="se">\</span>
   docker-py
@@ -71,7 +73,7 @@ sudo pip3 install lockfile <span class="se">\</span>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>git clone https://github.com/go-smart/dockerlaunch.git
 mkdir dockerlaunch-build
 <span class="nb">cd</span> dockerlaunch-build
-cmake ../dockerlaunch-build
+cmake ../dockerlaunch
 make
 sudo make install
 </pre></div>

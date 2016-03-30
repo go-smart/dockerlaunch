@@ -7,6 +7,7 @@ Dependencies
 ------------
 
 - Docker
+- CMake
 - Python 3:
         - lockfile
         - `python-daemon <https://github.com/go-smart/python-daemon>`_ (Go-Smart version)
@@ -16,7 +17,7 @@ These may be installed using (Ubuntu):
 
 .. code-block:: bash
 
-  sudo apt-get install docker.io
+  sudo apt-get install docker.io cmake
   sudo pip3 install lockfile \
     git+git://github.com/numa-engineering/python-daemon.git@master \
     docker-py
@@ -29,7 +30,7 @@ Installation
   git clone https://github.com/go-smart/dockerlaunch.git
   mkdir dockerlaunch-build
   cd dockerlaunch-build
-  cmake ../dockerlaunch-build
+  cmake ../dockerlaunch
   make
   sudo make install
 
