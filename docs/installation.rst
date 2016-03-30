@@ -12,7 +12,7 @@ Dependencies
         - `python-daemon <https://github.com/go-smart/python-daemon>`_ (Go-Smart version)
         - docker-py
 
-These may be installed using:
+These may be installed using (Ubuntu):
 
 .. code-block:: bash
 
@@ -56,6 +56,7 @@ of ``dockerlaunch`` is entirely at the user's risk.
 Usage
 -----
 
+Ensure Docker is running (on Ubuntu, ``sudo service docker start``).
 The dockerlaunch daemon may be started using the command:
 
 .. code-block:: bash
