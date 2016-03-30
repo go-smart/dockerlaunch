@@ -44,14 +44,23 @@
 <p>Installation is using an out-of-source CMake build:</p>
 <div class="section" id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
-<p>Python 3:</p>
-<ul class="simple">
+<ul>
+<li><p class="first">Docker</p>
+</li>
+<li><dl class="first docutils">
+<dt>Python 3:</dt>
+<dd><ul class="first last simple">
 <li>lockfile</li>
 <li><a class="reference external" href="https://github.com/go-smart/python-daemon">python-daemon</a> (Go-Smart version)</li>
 <li>docker-py</li>
 </ul>
+</dd>
+</dl>
+</li>
+</ul>
 <p>These may be installed using:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo pip3 install lockfile <span class="se">\</span>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get install docker.io
+sudo pip3 install lockfile <span class="se">\</span>
   git+git://github.com/numa-engineering/python-daemon.git@master <span class="se">\</span>
   docker-py
 </pre></div>
