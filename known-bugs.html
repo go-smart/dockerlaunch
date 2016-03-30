@@ -52,7 +52,7 @@ cannot connect to its socket, neither can Glossia, as it is now a file owned by 
 <p>To prevent Docker recreating the socket, the stopped Glossia containers should be manually
 removed using <code class="docutils literal"><span class="pre">docker</span> <span class="pre">rm</span></code> (by default named glossiaserverside_data_1, glossiaserverside_glossia_1).
 This situation can be confirmed by stopping the Docker daemon and restarting with <code class="docutils literal"><span class="pre">docker</span> <span class="pre">-d</span> <span class="pre">-D</span></code>.
-A line should be present: <code class="docutils literal"><span class="pre">error</span> <span class="pre">registering</span> <span class="pre">volume</span> <span class="pre">/run/dockerlaunch/dockerlaunch.sock:</span> <span class="pre">Volume</span> <span class="pre">exists:</span> <span class="pre">[[UUID]]&quot;</span></code></p>
+A line should be present: <code class="docutils literal"><span class="pre">error</span> <span class="pre">registering</span> <span class="pre">volume</span> <span class="pre">/run/dockerlaunch/dockerlaunch.sock:</span> <span class="pre">Volume</span> <span class="pre">exists:</span> <span class="pre">[[UUID]]</span></code></p>
 <p>In later versions of Docker, the <code class="docutils literal"><span class="pre">docker</span> <span class="pre">volume</span></code> command may be useful for identifying the
 fouling container, if there is ambiguity, using the <code class="docutils literal"><span class="pre">[[UUID]]</span></code> above.</p>
 </div>

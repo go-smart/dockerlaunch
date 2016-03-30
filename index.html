@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to dockerlaunch’s documentation! &mdash; dockerlaunch 0.2 documentation</title>
+    <title>dockerlaunch &mdash; dockerlaunch 0.2 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="dockerlaunch 0.2 documentation" href="#" />
-    <link rel="next" title="Container management commands" href="commands.html" />
+    <link rel="next" title="Installation &amp; Usage" href="installation.html" />
    
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
@@ -38,11 +38,24 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-dockerlaunch-s-documentation">
-<h1>Welcome to dockerlaunch&#8217;s documentation!<a class="headerlink" href="#welcome-to-dockerlaunch-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>Contents:</p>
+  <div class="section" id="dockerlaunch">
+<h1>dockerlaunch<a class="headerlink" href="#dockerlaunch" title="Permalink to this headline">¶</a></h1>
+<p>This daemon allows a specific, limited set of commands to be issued from
+within a prepared container (e.g. <a class="reference external" href="https://github.com/go-smart/glossia">Glossia</a>)
+to trigger interaction with the Docker server.</p>
+<p>Communication with the container is via a Unix domain socket, by default
+located at <code class="docutils literal"><span class="pre">/var/run/dockerlaunch/dockerlaunch.sock</span></code>. This is mounted
+into the master container.</p>
+</div>
+<div class="section" id="contents">
+<h1>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation &amp; Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#installation">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#usage">Usage</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="commands.html">Container management commands</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="commands.html#commands">Commands</a></li>
 </ul>
@@ -57,12 +70,6 @@
 </li>
 </ul>
 </div>
-<p>This daemon allows a specific, limited set of commands to be issued from
-within a prepared container (e.g. <a class="reference external" href="https://github.com/go-smart/glossia">Glossia</a>)
-to trigger interaction with the Docker server.</p>
-<p>Communication with the container is via a Unix domain socket, by default
-located at <code class="docutils literal"><span class="pre">/var/run/dockerlaunch/dockerlaunch.sock</span></code>. This is mounted
-into the master container.</p>
 </div>
 <div class="section" id="indices-and-tables">
 <h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
@@ -81,14 +88,15 @@ into the master container.</p>
         <div class="sphinxsidebarwrapper">
   <h3><a href="#">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">Welcome to dockerlaunch&#8217;s documentation!</a></li>
+<li><a class="reference internal" href="#">dockerlaunch</a></li>
+<li><a class="reference internal" href="#contents">Contents</a></li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
   <li><a href="#">Documentation overview</a><ul>
-      <li>Next: <a href="commands.html" title="next chapter">Container management commands</a></li>
+      <li>Next: <a href="installation.html" title="next chapter">Installation &amp; Usage</a></li>
   </ul></li>
 </ul>
 </div>

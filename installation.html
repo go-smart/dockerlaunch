@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installation &amp; Usage &mdash; dockerlaunch 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="dockerlaunch 0.2 documentation" href="index.html" />
+    <link rel="next" title="Container management commands" href="commands.html" />
+    <link rel="prev" title="dockerlaunch" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="installation-usage">
+<h1>Installation &amp; Usage<a class="headerlink" href="#installation-usage" title="Permalink to this headline">¶</a></h1>
+<p>Installation is using an out-of-source CMake build:</p>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>git clone https://github.com/go-smart/dockerlaunch.git
+mkdir dockerlaunch-build
+<span class="nb">cd</span> dockerlaunch-build
+cmake ../dockerlaunch-build
+make
+sudo make install
+</pre></div>
+</div>
+<p>This will create a <code class="docutils literal"><span class="pre">dockerlaunch</span></code> user and group,
+and add the <code class="docutils literal"><span class="pre">dockerlaunch</span></code> user to the Docker group.
+Note that this gives the <code class="docutils literal"><span class="pre">dockerlaunch</span></code> user access
+to the <code class="docutils literal"><span class="pre">/var/run/docker.sock</span></code> socket and, through
+a complex but plausible set of steps, root access.
+As such, care should be taken about any activity involving
+the <code class="docutils literal"><span class="pre">dockerlaunch</span></code> user.</p>
+<p>However, the <code class="docutils literal"><span class="pre">dockerlaunch</span></code>
+<strong>group</strong> is intended only to allow access to the
+<code class="docutils literal"><span class="pre">/var/run/dockerlaunch/dockerlaunch.sock</span></code> socket -
+adding a user to this allows them to issue dockerlaunch
+commands, without consequently being able to directly access
+Docker&#8217;s socket. Bear in mind that your protection against
+exploitation is limited to the security of the dockerlaunch
+daemon - please make your own analysis accordingly.</p>
+<p>NO WARRANTY is provided, implied or otherwise, and use
+of <code class="docutils literal"><span class="pre">dockerlaunch</span></code> is entirely at the user&#8217;s risk.</p>
+</div>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<p>The dockerlaunch daemon may be started using the command:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo dockerlaunchd start
+</pre></div>
+</div>
+<p>Once started, it also accepts <code class="docutils literal"><span class="pre">stop</span></code> and <code class="docutils literal"><span class="pre">restart</span></code>
+arguments. It will provide a small amount of diagnostic
+output to stdout.</p>
+<p>Note that, if Docker is restarted, dockerlaunch will
+also need restarted (and consequently Glossia, if you
+are using dockerlaunch for that purpose).</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installation &amp; Usage</a><ul>
+<li><a class="reference internal" href="#installation">Installation</a></li>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">dockerlaunch</a></li>
+      <li>Next: <a href="commands.html" title="next chapter">Container management commands</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/installation.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Phil Weir.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+      |
+      <a href="_sources/installation.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
