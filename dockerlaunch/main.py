@@ -2,20 +2,37 @@ from daemon.runner import DaemonRunner
 import os
 import logging
 import pwd
+import yaml
 
 from .app import DockerLaunchApp
 from .utils import _find_urandom_fd
+from dockerlaunch.config import etc_location
+
+
+def init_config():
+    """Load the configuration file."""
+
+    config_file = os.path.join(etc_location, 'dockerlaunch.yml')
+
+    try:
+        with open(config_file, 'r') as config_fileh:
+            docker_settings = yaml.safe_load(config_fileh)
+    except IOError:
+        logging.warning("[no config file found]")
+        docker_settings = {
+            'allowed_images': [
+                'gosmart/glossia-fenics',
+                'gosmart/gfoam',
+                'gosmart/glossia-goosefoot'
+            ],
+            'max_containers': 30,
+        }
+
+    return docker_settings
 
 
 def run(indocker=None):
-    docker_settings = {
-        'allowed_images': [
-            'gosmart/glossia-fenics',
-            'gosmart/gfoam',
-            'gosmart/glossia-goosefoot'
-        ],
-        'max_containers': 30
-    }
+    docker_settings = init_config()
 
     log_location = '/var/log/dockerlaunch'
     run_location = '/var/run/dockerlaunch'

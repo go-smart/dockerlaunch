@@ -12,6 +12,7 @@ Dependencies
         - lockfile
         - `python-daemon <https://github.com/go-smart/python-daemon>`_ (Go-Smart version)
         - docker-py
+        - pyyaml
 
 These may be installed using (Ubuntu):
 

@@ -13,13 +13,17 @@ class DockerLayer:
 
     def __init__(self, allowed_images, logger, script_filename,
                  max_containers=10,
-                 docker_socket=None, shutdown_timeout=5):
+                 docker_socket=None, shutdown_timeout=5,
+                 data_container='glossiaserverside_data_1',
+                 allow_host_mounting=False):
         self._logger = logger
         if docker_socket is not None:
             self._docker_socket = docker_socket
 
         self._allowed_images = allowed_images
         self._max_containers = max_containers
+        self._data_container = data_container
+        self._allow_host_mounting = allow_host_mounting
 
         self._logger.info("Trying to connect to Docker as %d:%d",
                           os.getuid(), os.getgid())
@@ -78,6 +82,7 @@ class DockerLayer:
                     c,
                     image,
                     data_location,
+                    self._data_container,
                     self._script_filename,
                     self._logger,
                     update_socket
@@ -130,7 +135,7 @@ class DockerLayer:
         return self.wait(self._shutdown_timeout, destroy=True)
 
     @staticmethod
-    def _launch(c, docker_image, data_location, script_filename, logger, update_socket=None):
+    def _launch(c, docker_image, data_location, data_container, script_filename, logger, update_socket=None):
         # Cleaned when object that holds it (instance of DL class) is destroyed
         try:
             temporary_directory = tempfile.TemporaryDirectory()
@@ -216,7 +221,7 @@ class DockerLayer:
             command=[data_location],
             environment=environment
         )
-        c.start(bridge, volumes_from=['glossiaserverside_data_1', container_id])
+        c.start(bridge, volumes_from=[data_container, container_id])
         logger.info("Bridge up")
 
         return container_id, temporary_directory, \
