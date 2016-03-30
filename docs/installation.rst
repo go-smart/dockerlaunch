@@ -3,6 +3,23 @@ Installation & Usage
 
 Installation is using an out-of-source CMake build:
 
+Dependencies
+------------
+
+Python 3:
+
+- lockfile
+- `python-daemon <https://github.com/go-smart/python-daemon>`_ (Go-Smart version)
+- docker-py
+
+These may be installed using:
+
+.. code-block:: bash
+
+  sudo pip3 install lockfile \
+    git+git://github.com/numa-engineering/python-daemon.git@master \
+    docker-py
+
 Installation
 ------------
 
