@@ -42,6 +42,21 @@
   <div class="section" id="installation-usage">
 <h1>Installation &amp; Usage<a class="headerlink" href="#installation-usage" title="Permalink to this headline">¶</a></h1>
 <p>Installation is using an out-of-source CMake build:</p>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<p>Python 3:</p>
+<ul class="simple">
+<li>lockfile</li>
+<li><a class="reference external" href="https://github.com/go-smart/python-daemon">python-daemon</a> (Go-Smart version)</li>
+<li>docker-py</li>
+</ul>
+<p>These may be installed using:</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo pip3 install lockfile <span class="se">\</span>
+  git+git://github.com/numa-engineering/python-daemon.git@master <span class="se">\</span>
+  docker-py
+</pre></div>
+</div>
+</div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-bash"><div class="highlight"><pre><span></span>git clone https://github.com/go-smart/dockerlaunch.git
@@ -94,6 +109,7 @@ are using dockerlaunch for that purpose).</p>
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Installation &amp; Usage</a><ul>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li><a class="reference internal" href="#installation">Installation</a></li>
 <li><a class="reference internal" href="#usage">Usage</a></li>
 </ul>
