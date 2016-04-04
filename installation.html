@@ -55,24 +55,27 @@
 <li>lockfile</li>
 <li><a class="reference external" href="https://github.com/go-smart/python-daemon">python-daemon</a> (Go-Smart version)</li>
 <li>docker-py</li>
+<li>pyyaml</li>
 </ul>
 </dd>
 </dl>
 </li>
+<li><p class="first">pip3 (for dependency installation)</p>
+</li>
 </ul>
 <p>These may be installed using (Ubuntu):</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo apt-get install docker.io cmake
+<div class="highlight-bash"><div class="highlight"><pre>sudo apt-get install docker.io cmake python3-pip
 sudo pip3 install lockfile <span class="se">\</span>
-  git+git://github.com/numa-engineering/python-daemon.git@master <span class="se">\</span>
+  git+git://github.com/go-smart/python-daemon.git@master <span class="se">\</span>
   docker-py
 </pre></div>
 </div>
 </div>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>git clone https://github.com/go-smart/dockerlaunch.git
+<div class="highlight-bash"><div class="highlight"><pre>git clone https://github.com/go-smart/dockerlaunch.git
 mkdir dockerlaunch-build
-<span class="nb">cd</span> dockerlaunch-build
+<span class="nb">cd </span>dockerlaunch-build
 cmake ../dockerlaunch
 make
 sudo make install
@@ -100,7 +103,7 @@ of <code class="docutils literal"><span class="pre">dockerlaunch</span></code> i
 <h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
 <p>Ensure Docker is running (on Ubuntu, <code class="docutils literal"><span class="pre">sudo</span> <span class="pre">service</span> <span class="pre">docker</span> <span class="pre">start</span></code>).
 The dockerlaunch daemon may be started using the command:</p>
-<div class="highlight-bash"><div class="highlight"><pre><span></span>sudo dockerlaunchd start
+<div class="highlight-bash"><div class="highlight"><pre>sudo dockerlaunchd start
 </pre></div>
 </div>
 <p>Once started, it also accepts <code class="docutils literal"><span class="pre">stop</span></code> and <code class="docutils literal"><span class="pre">restart</span></code>

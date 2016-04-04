@@ -39,7 +39,7 @@
           <div class="body" role="main">
             
   <h1>Source code for dockerlaunch.app</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">signal</span>
 
@@ -50,8 +50,8 @@
 <div class="viewcode-block" id="DockerLaunchApp"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.app.DockerLaunchApp">[docs]</a><span class="k">class</span> <span class="nc">DockerLaunchApp</span><span class="p">:</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">docker_settings</span><span class="p">,</span> <span class="n">socket_location</span><span class="p">,</span>
                  <span class="n">pidfile_path</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pidfile_timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-                 <span class="n">stdout_path</span><span class="o">=</span><span class="s1">&#39;/dev/tty&#39;</span><span class="p">,</span> <span class="n">stderr_path</span><span class="o">=</span><span class="s1">&#39;/dev/tty&#39;</span><span class="p">,</span>
-                 <span class="n">stdin_path</span><span class="o">=</span><span class="s1">&#39;/dev/null&#39;</span><span class="p">):</span>
+                 <span class="n">stdout_path</span><span class="o">=</span><span class="s">&#39;/dev/tty&#39;</span><span class="p">,</span> <span class="n">stderr_path</span><span class="o">=</span><span class="s">&#39;/dev/tty&#39;</span><span class="p">,</span>
+                 <span class="n">stdin_path</span><span class="o">=</span><span class="s">&#39;/dev/null&#39;</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">docker_settings</span> <span class="o">=</span> <span class="n">docker_settings</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">socket_location</span> <span class="o">=</span> <span class="n">socket_location</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pidfile_path</span> <span class="o">=</span> <span class="n">pidfile_path</span>
@@ -62,17 +62,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logger</span>
 
 <div class="viewcode-block" id="DockerLaunchApp.terminate"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.app.DockerLaunchApp.terminate">[docs]</a>    <span class="k">def</span> <span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">signo</span><span class="p">,</span> <span class="n">stackframe</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Terminating on signal </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">signo</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Terminating on signal </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">signo</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Server shutdown&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Server shutdown&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket_location</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">socket_location</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DockerLaunchApp.run"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.app.DockerLaunchApp.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting up...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Starting up...&quot;</span><span class="p">)</span>
 
         <span class="k">def</span> <span class="nf">bootstrap_request_handler</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="n">request_handler</span> <span class="o">=</span> <span class="n">ThreadedUnixRequestHandler</span><span class="p">(</span>
@@ -90,11 +90,11 @@
             <span class="n">bootstrap_request_handler</span>
         <span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting server&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Starting server&quot;</span><span class="p">)</span>
 
         <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">terminate</span><span class="p">)</span>
 
-        <span class="c1"># NOTE: This must be in a separate thread or terminate will deadlock</span>
+        <span class="c"># NOTE: This must be in a separate thread or terminate will deadlock</span>
         <span class="n">server_thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_server</span><span class="o">.</span><span class="n">serve_forever</span><span class="p">)</span>
         <span class="n">server_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div></div>
 </pre></div>

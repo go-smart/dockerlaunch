@@ -12,14 +12,16 @@ Dependencies
         - lockfile
         - `python-daemon <https://github.com/go-smart/python-daemon>`_ (Go-Smart version)
         - docker-py
+        - pyyaml
+- pip3 (for dependency installation)
 
 These may be installed using (Ubuntu):
 
 .. code-block:: bash
 
-  sudo apt-get install docker.io cmake
+  sudo apt-get install docker.io cmake python3-pip
   sudo pip3 install lockfile \
-    git+git://github.com/numa-engineering/python-daemon.git@master \
+    git+git://github.com/go-smart/python-daemon.git@master \
     docker-py
 
 Installation

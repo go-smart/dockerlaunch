@@ -39,7 +39,7 @@
           <div class="body" role="main">
             
   <h1>Source code for dockerlaunch.layer</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">docker</span>
+<span class="kn">import</span> <span class="nn">docker</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -48,30 +48,34 @@
 
 
 <div class="viewcode-block" id="DockerLayer"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer">[docs]</a><span class="k">class</span> <span class="nc">DockerLayer</span><span class="p">:</span>
-    <span class="n">_docker_socket</span> <span class="o">=</span> <span class="s1">&#39;unix://var/run/docker.sock&#39;</span>
+    <span class="n">_docker_socket</span> <span class="o">=</span> <span class="s">&#39;unix://var/run/docker.sock&#39;</span>
     <span class="n">_container_id</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">_container_info</span> <span class="o">=</span> <span class="bp">None</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allowed_images</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">script_filename</span><span class="p">,</span>
                  <span class="n">max_containers</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-                 <span class="n">docker_socket</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shutdown_timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+                 <span class="n">docker_socket</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shutdown_timeout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                 <span class="n">data_container</span><span class="o">=</span><span class="s">&#39;glossiaserverside_data_1&#39;</span><span class="p">,</span>
+                 <span class="n">allow_host_mounting</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logger</span>
         <span class="k">if</span> <span class="n">docker_socket</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_docker_socket</span> <span class="o">=</span> <span class="n">docker_socket</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_allowed_images</span> <span class="o">=</span> <span class="n">allowed_images</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_max_containers</span> <span class="o">=</span> <span class="n">max_containers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_container</span> <span class="o">=</span> <span class="n">data_container</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_allow_host_mounting</span> <span class="o">=</span> <span class="n">allow_host_mounting</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Trying to connect to Docker as </span><span class="si">%d</span><span class="s2">:</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Trying to connect to Docker as </span><span class="si">%d</span><span class="s">:</span><span class="si">%d</span><span class="s">&quot;</span><span class="p">,</span>
                           <span class="n">os</span><span class="o">.</span><span class="n">getuid</span><span class="p">(),</span> <span class="n">os</span><span class="o">.</span><span class="n">getgid</span><span class="p">())</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span> <span class="o">=</span> <span class="n">docker</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">base_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_docker_socket</span><span class="p">,</span>
-                                            <span class="n">version</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+                                            <span class="n">version</span><span class="o">=</span><span class="s">&#39;auto&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_shutdown_timeout</span> <span class="o">=</span> <span class="n">shutdown_timeout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_script_filename</span> <span class="o">=</span> <span class="n">script_filename</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bridges</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;New Docker layer created&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;New Docker layer created&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
@@ -86,8 +90,8 @@
 
 <div class="viewcode-block" id="DockerLayer.get_image_id"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.get_image_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_image_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">container_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_container_info</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">container_info</span> <span class="ow">and</span> <span class="s1">&#39;Image&#39;</span> <span class="ow">in</span> <span class="n">container_info</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">container_info</span><span class="p">[</span><span class="s1">&#39;Image&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">container_info</span> <span class="ow">and</span> <span class="s">&#39;Image&#39;</span> <span class="ow">in</span> <span class="n">container_info</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">container_info</span><span class="p">[</span><span class="s">&#39;Image&#39;</span><span class="p">]</span>
 
         <span class="k">return</span> <span class="bp">None</span></div>
 
@@ -97,28 +101,34 @@
 
         <span class="k">return</span> <span class="bp">None</span></div>
 
-<div class="viewcode-block" id="DockerLayer.get_container_logs"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.get_container_logs">[docs]</a>    <span class="k">def</span> <span class="nf">get_container_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DockerLayer.get_container_logs"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.get_container_logs">[docs]</a>    <span class="k">def</span> <span class="nf">get_container_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">only</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span><span class="o">.</span><span class="n">logs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">only</span> <span class="o">==</span> <span class="s">&#39;stdout&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span><span class="o">.</span><span class="n">logs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">only</span> <span class="o">==</span> <span class="s">&#39;stderr&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span><span class="o">.</span><span class="n">logs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">only</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">{</span><span class="n">h</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_container_logs</span><span class="p">(</span><span class="n">only</span><span class="o">=</span><span class="n">h</span><span class="p">)</span> <span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;stdout&#39;</span><span class="p">,</span> <span class="s">&#39;stderr&#39;</span><span class="p">)}</span>
 
         <span class="k">return</span> <span class="bp">None</span></div>
 
 <div class="viewcode-block" id="DockerLayer.try_launch"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.try_launch">[docs]</a>    <span class="k">def</span> <span class="nf">try_launch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">data_location</span><span class="p">,</span> <span class="n">update_socket</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">image</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_allowed_images</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;This image is not a whitelisted image for dockerlaunch&quot;</span>
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;This image is not a whitelisted image for dockerlaunch&quot;</span>
 
         <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_client</span>
         <span class="n">container_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">containers</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Currently </span><span class="si">%d</span><span class="s2"> containers&quot;</span> <span class="o">%</span> <span class="n">container_count</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Currently </span><span class="si">%d</span><span class="s"> containers&quot;</span> <span class="o">%</span> <span class="n">container_count</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">containers</span><span class="p">())</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_containers</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;Too many containers (max: </span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_containers</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="p">(</span><span class="s">&quot;Too many containers (max: </span><span class="si">%d</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_containers</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">container_id</span><span class="p">,</span> <span class="n">temporary_directory</span><span class="p">,</span> <span class="n">output_directory</span><span class="p">,</span> <span class="n">input_directory</span><span class="p">,</span> <span class="n">socket_available</span><span class="p">,</span> <span class="n">bridge_id</span> <span class="o">=</span> \
                 <span class="bp">self</span><span class="o">.</span><span class="n">_launch</span><span class="p">(</span>
                     <span class="n">c</span><span class="p">,</span>
                     <span class="n">image</span><span class="p">,</span>
                     <span class="n">data_location</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_data_container</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_script_filename</span><span class="p">,</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="p">,</span>
                     <span class="n">update_socket</span>
@@ -131,10 +141,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_bridges</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">bridge_id</span>
 
             <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="p">{</span>
-                <span class="s1">&#39;volume location&#39;</span><span class="p">:</span> <span class="n">temporary_directory</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
-                <span class="s1">&#39;output subdirectory&#39;</span><span class="p">:</span> <span class="n">output_directory</span><span class="p">,</span>
-                <span class="s1">&#39;input subdirectory&#39;</span><span class="p">:</span> <span class="n">input_directory</span><span class="p">,</span>
-                <span class="s1">&#39;update socket available&#39;</span><span class="p">:</span> <span class="n">socket_available</span>
+                <span class="s">&#39;volume location&#39;</span><span class="p">:</span> <span class="n">temporary_directory</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+                <span class="s">&#39;output subdirectory&#39;</span><span class="p">:</span> <span class="n">output_directory</span><span class="p">,</span>
+                <span class="s">&#39;input subdirectory&#39;</span><span class="p">:</span> <span class="n">input_directory</span><span class="p">,</span>
+                <span class="s">&#39;update socket available&#39;</span><span class="p">:</span> <span class="n">socket_available</span>
             <span class="p">}</span></div>
 
 <div class="viewcode-block" id="DockerLayer.wait"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.wait">[docs]</a>    <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">destroy</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
@@ -155,24 +165,24 @@
                 <span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                    <span class="s2">&quot;Did not complete while waiting (timeout </span><span class="si">%d</span><span class="s2">): </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                    <span class="s">&quot;Did not complete while waiting (timeout </span><span class="si">%d</span><span class="s">): </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span>
                     <span class="p">(</span><span class="n">timeout</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
                 <span class="p">)</span>
-                <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;Could not wait: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;Could not wait: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">container_destroyed</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_container_id</span> <span class="o">=</span> <span class="bp">None</span>
 
-            <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s2">&quot;Exited&quot;</span>
+            <span class="k">return</span> <span class="bp">True</span><span class="p">,</span> <span class="s">&quot;Exited&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;No container currently associated&quot;</span></div>
+            <span class="k">return</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;No container currently associated&quot;</span></div>
 
 <div class="viewcode-block" id="DockerLayer.destroy"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.layer.DockerLayer.destroy">[docs]</a>    <span class="k">def</span> <span class="nf">destroy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_shutdown_timeout</span><span class="p">,</span> <span class="n">destroy</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span></div>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_launch</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">docker_image</span><span class="p">,</span> <span class="n">data_location</span><span class="p">,</span> <span class="n">script_filename</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">update_socket</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="c1"># Cleaned when object that holds it (instance of DL class) is destroyed</span>
+    <span class="k">def</span> <span class="nf">_launch</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">docker_image</span><span class="p">,</span> <span class="n">data_location</span><span class="p">,</span> <span class="n">data_container</span><span class="p">,</span> <span class="n">script_filename</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">update_socket</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c"># Cleaned when object that holds it (instance of DL class) is destroyed</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">temporary_directory</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -182,60 +192,60 @@
 
         <span class="n">tmpdir</span> <span class="o">=</span> <span class="n">temporary_directory</span><span class="o">.</span><span class="n">name</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Created temporary directory: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpdir</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Created temporary directory: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">tmpdir</span><span class="p">)</span>
 
-        <span class="n">output_suffix</span> <span class="o">=</span> <span class="s1">&#39;output&#39;</span>
+        <span class="n">output_suffix</span> <span class="o">=</span> <span class="s">&#39;output&#39;</span>
         <span class="n">output_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">output_suffix</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_directory</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">output_directory</span><span class="p">,</span> <span class="mi">0</span><span class="n">o777</span><span class="p">)</span>
 
-        <span class="n">input_suffix</span> <span class="o">=</span> <span class="s1">&#39;input&#39;</span>
+        <span class="n">input_suffix</span> <span class="o">=</span> <span class="s">&#39;input&#39;</span>
         <span class="n">input_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">,</span> <span class="n">input_suffix</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">input_directory</span><span class="p">)</span>
 
-        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;FIXME: proper group permissions for input/output directories&quot;</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;FIXME: proper group permissions for input/output directories&quot;</span><span class="p">)</span>
 
         <span class="n">os</span><span class="o">.</span><span class="n">chmod</span><span class="p">(</span><span class="n">input_directory</span><span class="p">,</span> <span class="mi">0</span><span class="n">o777</span><span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Changed permissions: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpdir</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Changed permissions: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">tmpdir</span><span class="p">)</span>
 
-        <span class="c1"># Hack to work around Docker API &lt; 1.15</span>
-        <span class="n">volumes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;/shared&#39;</span><span class="p">,</span> <span class="s1">&#39;/docker-launch-inner.py&#39;</span><span class="p">]</span>
+        <span class="c"># Hack to work around Docker API &lt; 1.15</span>
+        <span class="n">volumes</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;/shared&#39;</span><span class="p">,</span> <span class="s">&#39;/docker-launch-inner.py&#39;</span><span class="p">]</span>
         <span class="n">binds</span> <span class="o">=</span> <span class="p">{</span>
         <span class="p">}</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Set up docker API&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Set up docker API&quot;</span><span class="p">)</span>
         <span class="n">environment</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="c1"># TODO: should there be additional security checks before mounting this sock?</span>
-        <span class="c1"># FIXME: at least that it is a socket, not a symlink and the unprivileged requester has write access</span>
+        <span class="c"># TODO: should there be additional security checks before mounting this sock?</span>
+        <span class="c"># FIXME: at least that it is a socket, not a symlink and the unprivileged requester has write access</span>
         <span class="k">if</span> <span class="n">update_socket</span><span class="p">:</span>
-            <span class="c1">#volumes.append(update_socket)</span>
-            <span class="c1">#binds[update_socket] = {</span>
-            <span class="c1">#    &#39;bind&#39;: &#39;/update.sock&#39;,</span>
-            <span class="c1">#    &#39;mode&#39;: &#39;rw&#39;</span>
-            <span class="c1">#}</span>
+            <span class="c">#volumes.append(update_socket)</span>
+            <span class="c">#binds[update_socket] = {</span>
+            <span class="c">#    &#39;bind&#39;: &#39;/update.sock&#39;,</span>
+            <span class="c">#    &#39;mode&#39;: &#39;rw&#39;</span>
+            <span class="c">#}</span>
             <span class="n">update_socket_available</span> <span class="o">=</span> <span class="bp">True</span>
-            <span class="n">environment</span><span class="p">[</span><span class="s1">&#39;GSSA_STATUS_SOCKET&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;/shared/update.sock&#39;</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Set GSSA_STATUS_SOCKET to </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">environment</span><span class="p">[</span><span class="s1">&#39;GSSA_STATUS_SOCKET&#39;</span><span class="p">])</span>
+            <span class="n">environment</span><span class="p">[</span><span class="s">&#39;GSSA_STATUS_SOCKET&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;/shared/update.sock&#39;</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Set GSSA_STATUS_SOCKET to </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">environment</span><span class="p">[</span><span class="s">&#39;GSSA_STATUS_SOCKET&#39;</span><span class="p">])</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;About to start...&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;About to start...&quot;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">docker</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">compare_version</span><span class="p">(</span><span class="s1">&#39;1.15&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">_version</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">docker</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">compare_version</span><span class="p">(</span><span class="s">&#39;1.15&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">_version</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">container</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span>
                 <span class="n">docker_image</span><span class="p">,</span>
                 <span class="n">volumes</span><span class="o">=</span><span class="n">volumes</span><span class="p">,</span>
                 <span class="n">environment</span><span class="o">=</span><span class="n">environment</span>
             <span class="p">)</span>
-            <span class="n">container_id</span> <span class="o">=</span> <span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">]</span>
+            <span class="n">container_id</span> <span class="o">=</span> <span class="n">container</span><span class="p">[</span><span class="s">&#39;Id&#39;</span><span class="p">]</span>
 
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Created container </span><span class="si">%s</span><span class="s2"> (old API)&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Created container </span><span class="si">%s</span><span class="s"> (old API)&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
 
-            <span class="n">c</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">container_id</span><span class="p">,</span> <span class="n">binds</span><span class="o">=</span><span class="n">binds</span><span class="p">,</span> <span class="n">network_mode</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">container_id</span><span class="p">,</span> <span class="n">binds</span><span class="o">=</span><span class="n">binds</span><span class="p">,</span> <span class="n">network_mode</span><span class="o">=</span><span class="s">&#39;none&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">config</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">create_host_config</span><span class="p">(</span>
                 <span class="n">binds</span><span class="o">=</span><span class="n">binds</span><span class="p">,</span>
-                <span class="n">network_mode</span><span class="o">=</span><span class="s1">&#39;none&#39;</span>
+                <span class="n">network_mode</span><span class="o">=</span><span class="s">&#39;none&#39;</span>
             <span class="p">)</span>
             <span class="n">container</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span>
                 <span class="n">docker_image</span><span class="p">,</span>
@@ -243,48 +253,48 @@
                 <span class="n">host_config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
                 <span class="n">environment</span><span class="o">=</span><span class="n">environment</span>
             <span class="p">)</span>
-            <span class="n">container_id</span> <span class="o">=</span> <span class="n">container</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">]</span>
+            <span class="n">container_id</span> <span class="o">=</span> <span class="n">container</span><span class="p">[</span><span class="s">&#39;Id&#39;</span><span class="p">]</span>
 
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Created container </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Created container </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
 
             <span class="n">c</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">container_id</span><span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Started&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Started&quot;</span><span class="p">)</span>
 
-        <span class="n">data_location</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s1">r&#39;[^a-zA-Z0-9-_]&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="n">data_location</span><span class="p">)</span>
+        <span class="n">data_location</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;[^a-zA-Z0-9-_]&#39;</span><span class="p">,</span> <span class="s">&#39;_&#39;</span><span class="p">,</span> <span class="n">data_location</span><span class="p">)</span>
         <span class="n">bridge</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">create_container</span><span class="p">(</span>
-            <span class="s1">&#39;gosmart/glossia-bridge&#39;</span><span class="p">,</span>
+            <span class="s">&#39;gosmart/glossia-bridge&#39;</span><span class="p">,</span>
             <span class="n">command</span><span class="o">=</span><span class="p">[</span><span class="n">data_location</span><span class="p">],</span>
             <span class="n">environment</span><span class="o">=</span><span class="n">environment</span>
         <span class="p">)</span>
-        <span class="n">c</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">bridge</span><span class="p">,</span> <span class="n">volumes_from</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;glossiaserverside_data_1&#39;</span><span class="p">,</span> <span class="n">container_id</span><span class="p">])</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Bridge up&quot;</span><span class="p">)</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">start</span><span class="p">(</span><span class="n">bridge</span><span class="p">,</span> <span class="n">volumes_from</span><span class="o">=</span><span class="p">[</span><span class="n">data_container</span><span class="p">,</span> <span class="n">container_id</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Bridge up&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">container_id</span><span class="p">,</span> <span class="n">temporary_directory</span><span class="p">,</span> \
-            <span class="n">output_suffix</span><span class="p">,</span> <span class="n">input_suffix</span><span class="p">,</span> <span class="n">update_socket_available</span><span class="p">,</span> <span class="n">bridge</span><span class="p">[</span><span class="s1">&#39;Id&#39;</span><span class="p">]</span>
+            <span class="n">output_suffix</span><span class="p">,</span> <span class="n">input_suffix</span><span class="p">,</span> <span class="n">update_socket_available</span><span class="p">,</span> <span class="n">bridge</span><span class="p">[</span><span class="s">&#39;Id&#39;</span><span class="p">]</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_wait</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">container_id</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">destroy</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">bridge_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Waiting for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Waiting for </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
 
         <span class="n">destroyed</span> <span class="o">=</span> <span class="bp">False</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="n">c</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">container_id</span><span class="p">,</span> <span class="n">timeout</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">Timeout</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;...timed out&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;...timed out&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Completed </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Completed </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">destroy</span><span class="p">:</span>
             <span class="n">c</span><span class="o">.</span><span class="n">remove_container</span><span class="p">(</span><span class="n">container_id</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removed </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Removed </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">container_id</span><span class="p">)</span>
 
             <span class="n">destroyed</span> <span class="o">=</span> <span class="bp">True</span>
 
         <span class="k">if</span> <span class="n">bridge_id</span><span class="p">:</span>
             <span class="n">c</span><span class="o">.</span><span class="n">stop</span><span class="p">(</span><span class="n">bridge_id</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Removed bridge </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">bridge_id</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Removed bridge </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">bridge_id</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">destroyed</span></div>
 </pre></div>

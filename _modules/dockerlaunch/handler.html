@@ -39,7 +39,7 @@
           <div class="body" role="main">
             
   <h1>Source code for dockerlaunch.handler</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">socketserver</span>
+<span class="kn">import</span> <span class="nn">socketserver</span>
 <span class="kn">import</span> <span class="nn">select</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -48,14 +48,14 @@
 <span class="kn">from</span> <span class="nn">.layer</span> <span class="kn">import</span> <span class="n">DockerLayer</span>
 
 
-<span class="c1"># From Py3 docs</span>
+<span class="c"># From Py3 docs</span>
 <div class="viewcode-block" id="ThreadedUnixRequestHandler"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.handler.ThreadedUnixRequestHandler">[docs]</a><span class="k">class</span> <span class="nc">ThreadedUnixRequestHandler</span><span class="p">(</span><span class="n">socketserver</span><span class="o">.</span><span class="n">StreamRequestHandler</span><span class="p">):</span>
     <span class="n">_docker_layer</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="n">_started</span> <span class="o">=</span> <span class="bp">False</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">docker_settings</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logger</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;New handler for new connection&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;New handler for new connection&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_configure</span><span class="p">(</span><span class="n">docker_settings</span><span class="p">)</span>
 
@@ -63,14 +63,14 @@
 
     <span class="k">def</span> <span class="nf">_configure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">docker_settings</span><span class="p">):</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="n">docker_settings</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;logger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;logger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span> <span class="o">=</span> <span class="n">DockerLayer</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ThreadedUnixRequestHandler.handle"><a class="viewcode-back" href="../../api/dockerlaunch.html#dockerlaunch.handler.ThreadedUnixRequestHandler.handle">[docs]</a>    <span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># We need to retain the connection</span>
+        <span class="c"># We need to retain the connection</span>
         <span class="n">sock</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span>
 
-        <span class="n">message</span> <span class="o">=</span> <span class="n">b</span><span class="s1">&#39;&#39;</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">b</span><span class="s">&#39;&#39;</span>
 
         <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
             <span class="n">input_ready</span><span class="p">,</span> <span class="n">output_ready</span><span class="p">,</span> <span class="n">error_ready</span> <span class="o">=</span> \
@@ -82,7 +82,7 @@
             <span class="n">data</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">data</span><span class="p">:</span>
-                <span class="n">breakpoint</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">breakpoint</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">b</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">breakpoint</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">message</span> <span class="o">+=</span> <span class="n">data</span>
@@ -92,20 +92,20 @@
 
                     <span class="k">if</span> <span class="n">message</span><span class="p">:</span>
                         <span class="k">try</span><span class="p">:</span>
-                            <span class="n">message</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">))</span>
+                            <span class="n">message</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;UTF-8&#39;</span><span class="p">))</span>
                         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                                <span class="s2">&quot;Could not parse message as JSON: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                                <span class="s">&quot;Could not parse message as JSON: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
                             <span class="p">)</span>
                             <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
-                            <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Unparseable message&quot;</span>
+                            <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;Unparseable message&quot;</span>
 
                         <span class="k">try</span><span class="p">:</span>
-                            <span class="n">command</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;command&quot;</span><span class="p">]</span>
-                            <span class="n">arguments</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s2">&quot;arguments&quot;</span><span class="p">]</span>
+                            <span class="n">command</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s">&quot;command&quot;</span><span class="p">]</span>
+                            <span class="n">arguments</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="s">&quot;arguments&quot;</span><span class="p">]</span>
                         <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
-                                <span class="s2">&quot;Missing component of message: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                                <span class="s">&quot;Missing component of message: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
                             <span class="p">)</span>
 
                         <span class="k">try</span><span class="p">:</span>
@@ -113,78 +113,82 @@
                                 <span class="bp">self</span><span class="o">.</span><span class="n">_process_message</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">arguments</span><span class="p">)</span>
                         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                             <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
-                            <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;Exception: </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> \
-                                <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_tb</span><span class="p">(</span><span class="n">exc_traceback</span><span class="p">)))</span>
+                            <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;Exception: </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> \
+                                <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_tb</span><span class="p">(</span><span class="n">exc_traceback</span><span class="p">)))</span>
 
                         <span class="n">response</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span>
-                            <span class="s1">&#39;success&#39;</span><span class="p">:</span> <span class="n">success</span><span class="p">,</span>
-                            <span class="s1">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span>
+                            <span class="s">&#39;success&#39;</span><span class="p">:</span> <span class="n">success</span><span class="p">,</span>
+                            <span class="s">&#39;message&#39;</span><span class="p">:</span> <span class="n">message</span>
                         <span class="p">})</span>
 
                         <span class="k">print</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
                         <span class="k">try</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">response</span><span class="p">,</span> <span class="s1">&#39;UTF-8&#39;</span><span class="p">))</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">sendall</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">response</span><span class="p">,</span> <span class="s">&#39;UTF-8&#39;</span><span class="p">))</span>
                         <span class="k">except</span> <span class="n">BrokenPipeError</span><span class="p">:</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Lost pipe&quot;</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Lost pipe&quot;</span><span class="p">)</span>
 
-                    <span class="n">message</span> <span class="o">=</span> <span class="n">b</span><span class="s1">&#39;&#39;</span></div>
+                    <span class="n">message</span> <span class="o">=</span> <span class="n">b</span><span class="s">&#39;&#39;</span></div>
 
     <span class="k">def</span> <span class="nf">_process_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">arguments</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">message</span> <span class="o">==</span> <span class="s2">&quot;START&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">arguments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s1">&#39;image&#39;</span> <span class="ow">in</span> <span class="n">arguments</span> <span class="ow">and</span> <span class="s1">&#39;volume location&#39;</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">message</span> <span class="o">==</span> <span class="s">&quot;START&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">arguments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s">&#39;image&#39;</span> <span class="ow">in</span> <span class="n">arguments</span> <span class="ow">and</span> <span class="s">&#39;volume location&#39;</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
                 <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span><span class="o">.</span><span class="n">try_launch</span><span class="p">(</span>
-                    <span class="n">arguments</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">],</span>
-                    <span class="n">arguments</span><span class="p">[</span><span class="s1">&#39;volume location&#39;</span><span class="p">],</span>
-                    <span class="n">arguments</span><span class="p">[</span><span class="s1">&#39;update socket&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;update socket&#39;</span> <span class="ow">in</span> <span class="n">arguments</span> <span class="k">else</span> <span class="bp">None</span>
+                    <span class="n">arguments</span><span class="p">[</span><span class="s">&#39;image&#39;</span><span class="p">],</span>
+                    <span class="n">arguments</span><span class="p">[</span><span class="s">&#39;volume location&#39;</span><span class="p">],</span>
+                    <span class="n">arguments</span><span class="p">[</span><span class="s">&#39;update socket&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="s">&#39;update socket&#39;</span> <span class="ow">in</span> <span class="n">arguments</span> <span class="k">else</span> <span class="bp">None</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;Image must be supplied in arguments&quot;</span>
+                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;Image must be supplied in arguments&quot;</span>
 
             <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_started</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s2">&quot;LOGS&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s">&quot;LOGS&quot;</span><span class="p">:</span>
             <span class="n">container_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span><span class="o">.</span><span class="n">get_container_id</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">container_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;No container associated&quot;</span>
+                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;No container associated&quot;</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">container_logs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span><span class="o">.</span><span class="n">get_container_logs</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">container_logs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                    <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;Could not retrieve logs&quot;</span>
+                <span class="k">if</span> <span class="n">arguments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s">&#39;only&#39;</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
+                    <span class="n">container_logs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span><span class="o">.</span><span class="n">get_container_logs</span><span class="p">(</span><span class="n">only</span><span class="o">=</span><span class="n">arguments</span><span class="p">[</span><span class="s">&#39;only&#39;</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">container_logs</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s2">&quot;WAIT&quot;</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">arguments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s1">&#39;timeout&#39;</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
-                <span class="n">timeout</span> <span class="o">=</span> <span class="n">arguments</span><span class="p">[</span><span class="s1">&#39;timeout&#39;</span><span class="p">]</span>
+                    <span class="n">container_logs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span><span class="o">.</span><span class="n">get_container_logs</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">container_logs</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;Could not retrieve logs&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">container_logs</span>
+        <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s">&quot;WAIT&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">arguments</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s">&#39;timeout&#39;</span> <span class="ow">in</span> <span class="n">arguments</span><span class="p">:</span>
+                <span class="n">timeout</span> <span class="o">=</span> <span class="n">arguments</span><span class="p">[</span><span class="s">&#39;timeout&#39;</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">timeout</span> <span class="o">=</span> <span class="bp">None</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_started</span><span class="p">:</span>
-                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;Must successfully start first&quot;</span>
+                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;Must successfully start first&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s2">&quot;USAGE&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s">&quot;USAGE&quot;</span><span class="p">:</span>
             <span class="n">container_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span><span class="o">.</span><span class="n">get_container_count</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">container_count</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;No Docker client connection&quot;</span>
+                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;No Docker client connection&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="n">container_count</span>
-        <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s2">&quot;CONTAINER&quot;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s">&quot;CONTAINER&quot;</span><span class="p">:</span>
             <span class="n">container_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span><span class="o">.</span><span class="n">get_container_id</span><span class="p">()</span>
             <span class="n">image_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span><span class="o">.</span><span class="n">get_image_id</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">container_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;No container associated&quot;</span>
+                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;No container associated&quot;</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;container_id&#39;</span><span class="p">:</span> <span class="n">container_id</span><span class="p">,</span> <span class="s1">&#39;image_id&#39;</span><span class="p">:</span> <span class="n">image_id</span><span class="p">}</span>
-        <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s2">&quot;DESTROY&quot;</span><span class="p">:</span>
+                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;container_id&#39;</span><span class="p">:</span> <span class="n">container_id</span><span class="p">,</span> <span class="s">&#39;image_id&#39;</span><span class="p">:</span> <span class="n">image_id</span><span class="p">}</span>
+        <span class="k">elif</span> <span class="n">message</span> <span class="o">==</span> <span class="s">&quot;DESTROY&quot;</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_started</span><span class="p">:</span>
-                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s2">&quot;Must successfully start first&quot;</span>
+                <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span> <span class="s">&quot;Must successfully start first&quot;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">success</span><span class="p">,</span> <span class="n">message</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_docker_layer</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">success</span> <span class="o">=</span> <span class="bp">False</span>
-            <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Unknown command: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">message</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s">&quot;Unknown command: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">message</span>
 
         <span class="k">return</span> <span class="n">success</span><span class="p">,</span> <span class="n">message</span></div>
 </pre></div>
