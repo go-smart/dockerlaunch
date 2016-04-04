@@ -108,11 +108,15 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
             if container_id is None:
                 success, message = False, "No container associated"
             else:
-                container_logs = self._docker_layer.get_container_logs()
+                if arguments is not None and 'only' in arguments:
+                    container_logs = self._docker_layer.get_container_logs(only=arguments['only'])
+                else:
+                    container_logs = self._docker_layer.get_container_logs()
+
                 if container_logs is None:
                     success, message = False, "Could not retrieve logs"
                 else:
-                    success, message = True, container_logs.decode('UTF-8')
+                    success, message = True, container_logs
         elif message == "WAIT":
             if arguments is not None and 'timeout' in arguments:
                 timeout = arguments['timeout']

@@ -60,9 +60,14 @@ class DockerLayer:
 
         return None
 
-    def get_container_logs(self):
+    def get_container_logs(self, only=None):
         if self._docker_client and self._container_id:
-            return self._docker_client.logs(self._container_id)
+            if only == 'stdout':
+                return self._docker_client.logs(self._container_id, stdout=True, stderr=False).decode('UTF-8')
+            elif only == 'stderr':
+                return self._docker_client.logs(self._container_id, stdout=False, stderr=True).decode('UTF-8')
+            elif only is None:
+                return {h: self.get_container_logs(only=h) for h in ('stdout', 'stderr')}
 
         return None
 
