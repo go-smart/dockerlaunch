@@ -9,16 +9,21 @@ import re
 class DockerLayer:
     _docker_socket = 'unix://var/run/docker.sock'
     _container_id = None
+    _container_info = None
 
     def __init__(self, allowed_images, logger, script_filename,
                  max_containers=10,
-                 docker_socket=None, shutdown_timeout=5):
+                 docker_socket=None, shutdown_timeout=5,
+                 data_container='glossiaserverside_data_1',
+                 allow_host_mounting=False):
         self._logger = logger
         if docker_socket is not None:
             self._docker_socket = docker_socket
 
         self._allowed_images = allowed_images
         self._max_containers = max_containers
+        self._data_container = data_container
+        self._allow_host_mounting = allow_host_mounting
 
         self._logger.info("Trying to connect to Docker as %d:%d",
                           os.getuid(), os.getgid())
@@ -37,15 +42,32 @@ class DockerLayer:
     def get_container_id(self):
         return self._container_id
 
+    def get_container_info(self):
+        if not self._container_info and self._container_id:
+            self._container_info = self._docker_client.inspect_container(self._container_id)
+        return self._container_info
+
+    def get_image_id(self):
+        container_info = self.get_container_info()
+        if container_info and 'Image' in container_info:
+            return container_info['Image']
+
+        return None
+
     def get_container_count(self):
         if self._docker_client:
             return len(self._docker_client.containers())
 
         return None
 
-    def get_container_logs(self):
+    def get_container_logs(self, only=None):
         if self._docker_client and self._container_id:
-            return self._docker_client.logs(self._container_id)
+            if only == 'stdout':
+                return self._docker_client.logs(self._container_id, stdout=True, stderr=False).decode('UTF-8')
+            elif only == 'stderr':
+                return self._docker_client.logs(self._container_id, stdout=False, stderr=True).decode('UTF-8')
+            elif only is None:
+                return {h: self.get_container_logs(only=h) for h in ('stdout', 'stderr')}
 
         return None
 
@@ -58,13 +80,14 @@ class DockerLayer:
         self._logger.info("Currently %d containers" % container_count)
 
         if len(c.containers()) > self._max_containers:
-            return False, "Too many containers"
+            return False, ("Too many containers (max: %d)" % self._max_containers)
         else:
-            container_id, temporary_directory, output_directory, input_directory, socket_available = \
+            container_id, temporary_directory, output_directory, input_directory, socket_available, bridge_id = \
                 self._launch(
                     c,
                     image,
                     data_location,
+                    self._data_container,
                     self._script_filename,
                     self._logger,
                     update_socket
@@ -74,6 +97,7 @@ class DockerLayer:
             self._temporary_directory = temporary_directory
             self._output_directory = output_directory
             self._input_directory = input_directory
+            self._bridges[self._container_id] = bridge_id
 
             return True, {
                 'volume location': temporary_directory.name,
@@ -116,7 +140,7 @@ class DockerLayer:
         return self.wait(self._shutdown_timeout, destroy=True)
 
     @staticmethod
-    def _launch(c, docker_image, data_location, script_filename, logger, update_socket=None):
+    def _launch(c, docker_image, data_location, data_container, script_filename, logger, update_socket=None):
         # Cleaned when object that holds it (instance of DL class) is destroyed
         try:
             temporary_directory = tempfile.TemporaryDirectory()
@@ -202,11 +226,11 @@ class DockerLayer:
             command=[data_location],
             environment=environment
         )
-        c.start(bridge, volumes_from=['glossiaserverside_data_1', container_id])
+        c.start(bridge, volumes_from=[data_container, container_id])
         logger.info("Bridge up")
 
         return container_id, temporary_directory, \
-            output_suffix, input_suffix, update_socket_available
+            output_suffix, input_suffix, update_socket_available, bridge['Id']
 
     @staticmethod
     def _wait(c, container_id, timeout, logger, destroy=False, bridge_id=None):

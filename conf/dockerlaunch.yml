@@ -1,0 +1,7 @@
+allowed_images:
+    - "gosmart/glossia-fenics"
+    - "gosmart/gfoam"
+    - "gosmart/glossia-goosefoot"
+max_containers: 30
+data_container: "glossiaserverside_data_1"
+allow_host_mounting: false

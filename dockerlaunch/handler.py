@@ -80,7 +80,10 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
                         })
 
                         print(response)
-                        self.request.sendall(bytes("%s\n" % response, 'UTF-8'))
+                        try:
+                            self.request.sendall(bytes("%s\n" % response, 'UTF-8'))
+                        except BrokenPipeError:
+                            self._logger.debug("Lost pipe")
 
                     message = b''
 
@@ -88,7 +91,7 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
         self._logger.debug(message)
 
         if message == "START":
-            if arguments is not None and 'image' in arguments and 'update socket':
+            if arguments is not None and 'image' in arguments and 'volume location' in arguments:
                 success, message = self._docker_layer.try_launch(
                     arguments['image'],
                     arguments['volume location'],
@@ -104,11 +107,15 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
             if container_id is None:
                 success, message = False, "No container associated"
             else:
-                container_logs = self._docker_layer.get_container_logs()
+                if arguments is not None and 'only' in arguments:
+                    container_logs = self._docker_layer.get_container_logs(only=arguments['only'])
+                else:
+                    container_logs = self._docker_layer.get_container_logs()
+
                 if container_logs is None:
                     success, message = False, "Could not retrieve logs"
                 else:
-                    success, message = True, container_logs.decode('UTF-8')
+                    success, message = True, container_logs
         elif message == "WAIT":
             if arguments is not None and 'timeout' in arguments:
                 timeout = arguments['timeout']
@@ -127,10 +134,11 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
                 success, message = True, container_count
         elif message == "CONTAINER":
             container_id = self._docker_layer.get_container_id()
+            image_id = self._docker_layer.get_image_id()
             if container_id is None:
                 success, message = False, "No container associated"
             else:
-                success, message = True, container_id
+                success, message = True, {'container_id': container_id, 'image_id': image_id}
         elif message == "DESTROY":
             if not self._started:
                 success, message = False, "Must successfully start first"

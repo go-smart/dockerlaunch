@@ -1,6 +1,27 @@
 from setuptools import setup
 from setuptools.command.install import install
 import subprocess
+import os
+import errno
+
+
+# Create the module directory
+config_directory = "${CMAKE_CURRENT_BINARY_DIR}/config"
+try:
+    os.makedirs(config_directory)
+except OSError as e:
+    if e.errno != errno.EEXIST:
+        raise RuntimeError("Could not create directory: %s" % (str(e)))
+
+# The init script will contain the necessary variables
+config_target = os.path.join(config_directory, "__init__.py")
+
+with open(config_target, "w") as f:
+    f.write("""
+etc_location = '{0}'
+""".format(
+        "${ETC_FULL_LOCATION}"
+    ))
 
 
 def privileged_setup():
@@ -27,11 +48,14 @@ class WrappedInstall(install):
 setup(
     name='dockerlaunch',
     version='0.1',
-    packages=['dockerlaunch'],
+    packages=['dockerlaunch', 'dockerlaunch.config'],
     package_data={'dockerlaunch': [
         '${CMAKE_CURRENT_SOURCE_DIR}/dockerlaunch/data/indocker.py'
     ]},
-    package_dir={'dockerlaunch': '${CMAKE_CURRENT_SOURCE_DIR}/dockerlaunch'},
+    package_dir={
+        'dockerlaunch': '${CMAKE_CURRENT_SOURCE_DIR}/dockerlaunch',
+        'dockerlaunch.config': config_directory
+    },
 
     description='Launcher for Docker containers to provide some measure of sandbox protection',
     author='Phil Weir - NUMA Engineering Services Ltd.',
@@ -42,7 +66,10 @@ setup(
         '${CMAKE_CURRENT_SOURCE_DIR}/scripts/dockerlaunchd'
     ],
     install_requires=[
-        'dockerpy'
+        'docker-py',
+        'lockfile',
+        'python-daemon',
+        'pyyaml'
     ],
     cmdclass={'install': WrappedInstall, 'dockerlaunch_setup': DockerLaunchSetup}
 )
