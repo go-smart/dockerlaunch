@@ -4,7 +4,7 @@ import json
 import sys
 import traceback
 
-from .layer import DockerLayer
+import dockerlaunch.layer 
 
 
 # From Py3 docs
@@ -13,17 +13,16 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
     _started = False
 
     def __init__(self, docker_settings, logger, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._logger = logger
         self._logger.debug("New handler for new connection")
 
         self._configure(docker_settings)
 
-        super().__init__(*args, **kwargs)
-
     def _configure(self, docker_settings):
         kwargs = docker_settings
         kwargs['logger'] = self._logger
-        self._docker_layer = DockerLayer(**kwargs)
+        self._docker_layer = dockerlaunch.layer.DockerLayer(**kwargs)
 
     def handle(self):
         # We need to retain the connection

@@ -2,8 +2,8 @@ import threading
 import os
 import signal
 
-from .server import ThreadedUnixServer
-from .handler import ThreadedUnixRequestHandler
+import dockerlaunch.server 
+import dockerlaunch.handler 
 
 
 class DockerLaunchApp:
@@ -34,7 +34,7 @@ class DockerLaunchApp:
         self._logger.info("Starting up...")
 
         def bootstrap_request_handler(*args, **kwargs):
-            request_handler = ThreadedUnixRequestHandler(
+            request_handler = dockerlaunch.handler.ThreadedUnixRequestHandler(
                 self.docker_settings,
                 self._logger,
                 *args,
@@ -44,7 +44,7 @@ class DockerLaunchApp:
             return request_handler
 
         print(self.socket_location)
-        self._server = ThreadedUnixServer(
+        self._server = dockerlaunch.server.ThreadedUnixServer(
             self.socket_location,
             bootstrap_request_handler
         )

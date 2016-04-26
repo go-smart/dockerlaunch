@@ -1,5 +1,5 @@
-from distutils.core import setup
-from distutils.command.install import install
+from setuptools import setup
+from setuptools.command.install import install
 import subprocess
 
 
@@ -40,6 +40,9 @@ setup(
 
     scripts=[
         '${CMAKE_CURRENT_SOURCE_DIR}/scripts/dockerlaunchd'
+    ],
+    install_requires=[
+        'dockerpy'
     ],
     cmdclass={'install': WrappedInstall, 'dockerlaunch_setup': DockerLaunchSetup}
 )
