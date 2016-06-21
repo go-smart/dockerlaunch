@@ -88,8 +88,6 @@ class ThreadedUnixRequestHandler(socketserver.StreamRequestHandler):
                     message = b''
 
     def _process_message(self, message, arguments):
-        self._logger.debug(message)
-
         if message == "START":
             if arguments is not None and 'image' in arguments and 'volume location' in arguments:
                 success, message = self._docker_layer.try_launch(
